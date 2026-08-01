@@ -1,0 +1,299 @@
+// ===============================
+// Tic Tac Toe Pro - Part 2A
+// ===============================
+
+// DOM Elements
+const cells = document.querySelectorAll(".cell");
+const statusText = document.querySelector(".status");
+const timerText = document.getElementById("timer");
+
+const restartBtn = document.getElementById("restartBtn");
+const resetBtn = document.getElementById("resetBtn");
+const undoBtn = document.getElementById("undoBtn");
+const redoBtn = document.getElementById("redoBtn");
+
+const themeBtn = document.getElementById("themeBtn");
+const modeBtn = document.getElementById("modeBtn");
+
+const xScoreText = document.getElementById("xScore");
+const oScoreText = document.getElementById("oScore");
+const drawScoreText = document.getElementById("drawScore");
+
+const gamesPlayedText = document.getElementById("gamesPlayed");
+const winRateText = document.getElementById("winRate");
+const streakText = document.getElementById("streak");
+
+const playerXInput = document.getElementById("playerX");
+const playerOInput = document.getElementById("playerO");
+
+// -------------------------------
+// Game Variables
+// -------------------------------
+
+let board = ["", "", "", "", "", "", "", "", ""];
+
+let currentPlayer = "X";
+let gameRunning = true;
+
+let aiMode = false;
+
+let timer = 10;
+let timerInterval;
+
+// Scores
+let xScore = 0;
+let oScore = 0;
+let drawScore = 0;
+
+// Statistics
+let gamesPlayed = 0;
+let longestStreak = 0;
+let currentStreak = 0;
+
+// Undo / Redo
+let moveHistory = [];
+let redoHistory = [];
+
+// Winning combinations
+const winningConditions = [
+
+    [0,1,2],
+    [3,4,5],
+    [6,7,8],
+
+    [0,3,6],
+    [1,4,7],
+    [2,5,8],
+
+    [0,4,8],
+    [2,4,6]
+
+];
+
+// -------------------------------
+// Event Listeners
+// -------------------------------
+
+cells.forEach(cell => {
+
+    cell.addEventListener("click", cellClicked);
+
+});
+
+restartBtn.addEventListener("click", restartGame);
+
+resetBtn.addEventListener("click", resetScores);
+
+themeBtn.addEventListener("click", toggleTheme);
+
+modeBtn.addEventListener("click", toggleMode);
+
+// -------------------------------
+// Player Click
+// -------------------------------
+
+function cellClicked() {
+
+    const index = this.dataset.index;
+
+    if (!gameRunning) return;
+
+    if (board[index] !== "") return;
+
+    board[index] = currentPlayer;
+
+    this.textContent = currentPlayer;
+
+    moveHistory.push(index);
+
+    redoHistory = [];
+
+    checkWinner();
+
+}
+
+// -------------------------------
+// Winner Checker
+// -------------------------------
+
+function checkWinner() {
+
+    let roundWon = false;
+
+    let winningCells = [];
+
+    for (let condition of winningConditions) {
+
+        const a = condition[0];
+        const b = condition[1];
+        const c = condition[2];
+
+        if (
+            board[a] !== "" &&
+            board[a] === board[b] &&
+            board[a] === board[c]
+        ) {
+
+            roundWon = true;
+            winningCells = condition;
+
+            break;
+
+        }
+
+    }
+
+    if (roundWon) {
+
+        winningCells.forEach(index => {
+
+            cells[index].classList.add("winner");
+
+        });
+
+        statusText.textContent =
+            `${getPlayerName(currentPlayer)} Wins! 🎉`;
+
+        if (currentPlayer === "X") {
+
+            xScore++;
+            currentStreak++;
+
+        } else {
+
+            oScore++;
+            currentStreak++;
+
+        }
+
+        if (currentStreak > longestStreak) {
+
+            longestStreak = currentStreak;
+
+        }
+
+        gamesPlayed++;
+
+        updateScoreboard();
+
+        gameRunning = false;
+
+        clearInterval(timerInterval);
+
+        return;
+
+    }
+
+    // Draw
+
+    if (!board.includes("")) {
+
+        statusText.textContent = "It's a Draw!";
+
+        drawScore++;
+
+        gamesPlayed++;
+
+        currentStreak = 0;
+
+        updateScoreboard();
+
+        gameRunning = false;
+
+        clearInterval(timerInterval);
+
+        return;
+
+    }
+
+    changePlayer();
+
+}
+
+// -------------------------------
+// Change Turn
+// -------------------------------
+
+function changePlayer() {
+
+    currentPlayer = currentPlayer === "X" ? "O" : "X";
+
+    statusText.textContent =
+        `${getPlayerName(currentPlayer)}'s Turn`;
+
+    resetTimer();
+
+}
+
+// -------------------------------
+// Restart
+// -------------------------------
+
+function restartGame() {
+
+    board = ["","","","","","","","",""];
+
+    gameRunning = true;
+
+    currentPlayer = "X";
+
+    moveHistory = [];
+
+    redoHistory = [];
+
+    cells.forEach(cell => {
+
+        cell.textContent = "";
+
+        cell.classList.remove("winner");
+
+    });
+
+    statusText.textContent =
+        `${getPlayerName("X")}'s Turn`;
+
+    resetTimer();
+
+}
+
+// -------------------------------
+// Scoreboard
+// -------------------------------
+
+function updateScoreboard() {
+
+    xScoreText.textContent = xScore;
+
+    oScoreText.textContent = oScore;
+
+    drawScoreText.textContent = drawScore;
+
+    gamesPlayedText.textContent = gamesPlayed;
+
+    streakText.textContent = longestStreak;
+
+    let totalWins = xScore + oScore;
+
+    let rate = gamesPlayed === 0
+        ? 0
+        : Math.round((totalWins / gamesPlayed) * 100);
+
+    winRateText.textContent = rate + "%";
+
+}
+
+// -------------------------------
+// Player Names
+// -------------------------------
+
+function getPlayerName(player) {
+
+    if (player === "X") {
+
+        return playerXInput.value.trim() || "Player X";
+
+    }
+
+    return playerOInput.value.trim() || "Player O";
+
+}
