@@ -5,3 +5,4 @@ Multiplayer game
 Leader board
 metallic board 
 Butterflies effects in background
+Elegant dark colours (dark mode)
