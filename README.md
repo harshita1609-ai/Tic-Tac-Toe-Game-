@@ -2,4 +2,4 @@
 Tic Tac Toe game, made with love, play n enjoy :)
 The features of it includes
 Multiplayer game 
-Leasder 
+Leader board
